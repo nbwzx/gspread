@@ -2607,6 +2607,26 @@ class Worksheet:
 
         return self.spreadsheet.batch_update(body)
 
+    def get_notes(self, index):
+        """Get a list of all the notes in the sheet, or the empty list if the
+        sheet does not have a note.
+        :param index: Position of the sheet.
+        :type index: int
+        """
+        url = SPREADSHEET_URL % (self.spreadsheet.id)
+        params = {"fields": "sheets/data/rowData/values/note"}
+        response = self.client.request("get", url, params=params)
+        response.raise_for_status()
+        response_json = response.json()
+
+        try:
+            data = response_json["sheets"][index]["data"][0]["rowData"]
+            notes = [dv['note'] for d in data if 'values' in d for dv in d['values'] if 'note' in dv]
+        except (IndexError, KeyError):
+            notes = []
+
+        return notes
+
     def get_note(self, cell):
         """Get the content of the note located at `cell`, or the empty string if the
         cell does not have a note.
