@@ -2607,11 +2607,9 @@ class Worksheet:
 
         return self.spreadsheet.batch_update(body)
 
-    def get_notes(self, index):
-        """Get a list of all the notes in the sheet, or the empty list if the
+    def get_notes(self):
+        """Returns a list of lists containing all notes in the sheet, or the empty list if the
         sheet does not have a note.
-        :param index: Position of the sheet.
-        :type index: int
         """
         url = SPREADSHEET_URL % (self.spreadsheet.id)
         params = {"fields": "sheets/data/rowData/values/note"}
@@ -2620,8 +2618,12 @@ class Worksheet:
         response_json = response.json()
 
         try:
-            data = response_json["sheets"][index]["data"][0]["rowData"]
-            notes = [dv['note'] for d in data if 'values' in d for dv in d['values'] if 'note' in dv]
+            data = response_json["sheets"][self.index]["data"][0]["rowData"]
+            notes = []
+            for row in data:
+                notes.append([])
+                for cell in row.get("values", []):
+                    notes[-1].append(cell.get("note", ""))
         except (IndexError, KeyError):
             notes = []
 
